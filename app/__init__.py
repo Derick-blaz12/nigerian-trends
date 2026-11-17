@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from config import config
+from app.extensions import db, migrate
 
 
 def create_app(config_name=None):
@@ -8,6 +9,10 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from app import models  # noqa: F401  (registers tables with SQLAlchemy)
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
