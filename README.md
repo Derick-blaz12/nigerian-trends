@@ -25,3 +25,16 @@ Phase 1 complete: project foundation.
 
 ## Roadmap
 15 phases, built milestone by milestone.
+
+## Project layout
+- `app/api` and `app/main`: Blueprints (HTTP only)
+- `app/services`: business logic and database work
+- `app/models`: SQLAlchemy models
+- `app/utils`: validation and pagination helpers
+- `app/errors.py`: error classes and JSON error handling
+- `app/logging_config.py`: logging and request IDs
+
+## Useful commands
+    flask --app wsgi db upgrade        # apply migrations
+    flask --app wsgi seed-genres       # insert starter genres
+    pytest                             # run tests
