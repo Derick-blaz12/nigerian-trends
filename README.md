@@ -38,3 +38,8 @@ Phase 1 complete: project foundation.
     flask --app wsgi db upgrade        # apply migrations
     flask --app wsgi seed-genres       # insert starter genres
     pytest                             # run tests
+
+    ## API overview
+- `GET /api/v1/artists?q=&genre=&page=&per_page=`: list and search artists
+- `GET /api/v1/artists/<slug>`: artist profile
+- `/api/v1/admin/artists/...`: create, update, archive, restore, image upload (admin only)

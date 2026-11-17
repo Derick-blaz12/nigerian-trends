@@ -18,8 +18,14 @@ class Config:
     DEFAULT_PAGE_SIZE = 20
     MAX_PAGE_SIZE = 100
 
-    # Reject oversized request bodies (1 MB).
-    MAX_CONTENT_LENGTH = 1024 * 1024
+    # Request size limits
+    MAX_CONTENT_LENGTH = 6 * 1024 * 1024  # hard ceiling for any request
+    MAX_JSON_BYTES = 1024 * 1024          # JSON bodies
+    MAX_IMAGE_BYTES = 5 * 1024 * 1024     # image uploads
+
+    # Media storage: local disk for now, object storage in Phase 14
+    UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(basedir, "uploads"))
+    MEDIA_URL = "/media"
 
     # Sessions and cookies
     SESSION_COOKIE_HTTPONLY = True

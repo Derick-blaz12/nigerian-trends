@@ -28,7 +28,9 @@ def create_app(config_name=None, overrides=None):
     limiter.init_app(app)
 
     from app import models  # noqa: F401  (registers tables with SQLAlchemy)
-    from app import security  # noqa: F401  (registers the user loader)
+    from app import security  # registers the user loader
+
+    security.register_request_limits(app)
 
     from app.api import bp as api_bp
     from app.main import bp as main_bp

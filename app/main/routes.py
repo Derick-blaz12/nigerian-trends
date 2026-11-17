@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from flask import current_app, jsonify
+from flask import current_app, jsonify, send_from_directory
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.errors import AppError
@@ -27,3 +27,13 @@ def health_db():
             "Database unavailable.", status_code=503, code="database_unavailable"
         ) from None
     return jsonify(status="ok", database="up")
+
+
+@bp.get("/media/<path:filename>")
+def media(filename):
+    """Serves uploaded images in development. Phase 14 replaces this with object storage."""
+    response = send_from_directory(
+        current_app.config["UPLOAD_DIR"], filename, max_age=60 * 60 * 24 * 30
+    )
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response

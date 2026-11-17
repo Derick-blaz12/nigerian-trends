@@ -25,3 +25,10 @@ def test_database_health_check(client):
     response = client.get("/health/db")
     assert response.status_code == 200
     assert response.get_json() == {"status": "ok", "database": "up"}
+
+def test_oversized_json_body_is_rejected(client):
+    response = client.post(
+        "/api/v1/auth/login", json={"identifier": "a", "password": "x" * 1_200_000}
+    )
+    assert response.status_code == 413
+    assert response.get_json()["error"]["code"] == "payload_too_large"

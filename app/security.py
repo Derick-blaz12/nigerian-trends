@@ -1,10 +1,21 @@
 from functools import wraps
 
+from flask import request
 from flask_login import current_user
 
-from app.errors import AuthenticationError, ForbiddenError
+from app.errors import AppError, AuthenticationError, ForbiddenError
 from app.extensions import db, login_manager
 from app.models import User
+
+
+def register_request_limits(app):
+    """JSON bodies are capped at MAX_JSON_BYTES; uploads get the larger global ceiling."""
+
+    @app.before_request
+    def limit_json_body():
+        length = request.content_length
+        if request.is_json and length is not None and length > app.config["MAX_JSON_BYTES"]:
+            raise AppError("Request body too large.", status_code=413, code="payload_too_large")
 
 
 @login_manager.user_loader
