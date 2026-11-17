@@ -1,7 +1,8 @@
 import click
 
-from app.errors import ConflictError
-from app.services import genre_service
+from app.errors import AppError, ConflictError
+from app.extensions import db
+from app.services import auth_service, genre_service
 
 STARTER_GENRES = [
     "Afrobeats", "Afropop", "Afro-fusion", "Amapiano", "Alté", "Highlife",
@@ -22,3 +23,18 @@ def register_cli(app):
             except ConflictError:
                 pass
         click.echo(f"Seeded {created} new genres ({len(STARTER_GENRES) - created} already existed).")
+
+    @app.cli.command("create-admin")
+    @click.option("--email", prompt=True)
+    @click.option("--username", prompt=True)
+    @click.password_option()
+    def create_admin(email, username, password):
+        """Create an administrator account."""
+        try:
+            user = auth_service.register_user(email, username, password)
+        except AppError as err:
+            details = "; ".join(f"{k}: {v}" for k, v in (err.details or {}).items())
+            raise click.ClickException(f"{err.message} {details}".strip()) from err
+        user.role = "admin"
+        db.session.commit()
+        click.echo(f"Administrator '{user.username}' created.")

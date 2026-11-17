@@ -1,13 +1,15 @@
 from datetime import datetime
 
 import sqlalchemy as sa
+from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
 from app.models.mixins import TimestampMixin
 
 
-class User(TimestampMixin, db.Model):
+class User(UserMixin, TimestampMixin, db.Model):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -21,3 +23,13 @@ class User(TimestampMixin, db.Model):
     __table_args__ = (
         sa.CheckConstraint("role IN ('user', 'admin')", name="ck_users_role"),
     )
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_admin(self):
+        return self.role == "admin"

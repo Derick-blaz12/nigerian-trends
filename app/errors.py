@@ -34,6 +34,15 @@ class ConflictError(AppError):
     status_code = 409
     code = "conflict"
 
+class AuthenticationError(AppError):
+    status_code = 401
+    code = "unauthorized"
+
+
+class ForbiddenError(AppError):
+    status_code = 403
+    code = "forbidden"
+
 
 def error_response(status, code, message, details=None):
     body = {"error": {"code": code, "message": message}}
