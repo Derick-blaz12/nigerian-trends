@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets
+.env
+
+# Databases and uploads (local only)
+*.db
+*.sqlite3
+instance/
+uploads/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
