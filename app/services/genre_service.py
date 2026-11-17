@@ -40,3 +40,29 @@ def create_genre(name, session=None):
     session.add(genre)
     session.commit()
     return genre
+
+MAX_GENRES = 10
+
+
+def load_genres(slugs, session=None):
+    """Turn a list of genre slugs from a request into Genre objects."""
+    session = session or db.session
+    if (
+        not isinstance(slugs, list)
+        or len(slugs) > MAX_GENRES
+        or not all(isinstance(s, str) for s in slugs)
+    ):
+        raise ValidationError(
+            "genres is invalid.",
+            details={"genres": f"Must be a list of up to {MAX_GENRES} genre slugs."},
+        )
+    wanted = list(dict.fromkeys(s.strip().lower() for s in slugs))
+    if not wanted:
+        return []
+    found = {g.slug: g for g in session.scalars(sa.select(Genre).where(Genre.slug.in_(wanted)))}
+    unknown = [s for s in wanted if s not in found]
+    if unknown:
+        raise ValidationError(
+            "genres is invalid.", details={"genres": "Unknown genres: " + ", ".join(unknown)}
+        )
+    return [found[s] for s in wanted]

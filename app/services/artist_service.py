@@ -8,16 +8,16 @@ from sqlalchemy.orm import selectinload
 
 from app.errors import AppError, ConflictError, NotFoundError, ValidationError
 from app.extensions import db
-from app.models import Artist, Genre, SongArtist
+from app.models import Artist, Genre, Song, SongArtist
 from app.models.mixins import utcnow
 from app.storage import get_storage
 from app.utils.images import process_image
 from app.utils.validation import clean_string, slugify
+from app.services.genre_service import load_genres
 
 EDITABLE_FIELDS = ("name", "bio", "origin_city", "debut_year", "genres")
 STATUSES = ("active", "archived", "all")
 MAX_BIO_LENGTH = 5000
-MAX_GENRES = 10
 MAX_SEARCH_LENGTH = 100
 
 
@@ -50,28 +50,6 @@ def _debut_year(value):
     return value
 
 
-def _load_genres(slugs, session):
-    if (
-        not isinstance(slugs, list)
-        or len(slugs) > MAX_GENRES
-        or not all(isinstance(s, str) for s in slugs)
-    ):
-        raise ValidationError(
-            "genres is invalid.",
-            details={"genres": f"Must be a list of up to {MAX_GENRES} genre slugs."},
-        )
-    wanted = list(dict.fromkeys(s.strip().lower() for s in slugs))
-    if not wanted:
-        return []
-    found = {g.slug: g for g in session.scalars(sa.select(Genre).where(Genre.slug.in_(wanted)))}
-    unknown = [s for s in wanted if s not in found]
-    if unknown:
-        raise ValidationError(
-            "genres is invalid.", details={"genres": "Unknown genres: " + ", ".join(unknown)}
-        )
-    return [found[s] for s in wanted]
-
-
 def _ensure_name_available(name, session, exclude_id=None):
     stmt = sa.select(Artist.id).where(sa.func.lower(Artist.name) == sa.func.lower(name))
     if exclude_id is not None:
@@ -97,7 +75,7 @@ def _validate(data, session, exclude_id=None):
     if "debut_year" in data:
         changes["debut_year"] = _debut_year(data["debut_year"])
     if "genres" in data:
-        changes["genres"] = _load_genres(data["genres"], session)
+        changes["genres"] = load_genres(data["genres"], session)
     return changes
 
 
@@ -120,7 +98,10 @@ def _detail_options():
     return (
         selectinload(Artist.genres),
         selectinload(Artist.albums),
-        selectinload(Artist.song_credits).selectinload(SongArtist.song),
+        selectinload(Artist.song_credits)
+        .selectinload(SongArtist.song)
+        .selectinload(Song.credits)
+        .selectinload(SongArtist.artist),
     )
 
 

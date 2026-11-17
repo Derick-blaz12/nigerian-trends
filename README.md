@@ -43,3 +43,7 @@ Phase 1 complete: project foundation.
 - `GET /api/v1/artists?q=&genre=&page=&per_page=`: list and search artists
 - `GET /api/v1/artists/<slug>`: artist profile
 - `/api/v1/admin/artists/...`: create, update, archive, restore, image upload (admin only)
+- `GET /api/v1/songs?q=&genre=&artist=`, `GET /api/v1/songs/<id>`, `GET /api/v1/albums/<id>`
+- `GET /api/v1/search?q=`: grouped search across artists, songs and albums
+- `/api/v1/admin/songs|albums|links`: catalogue management (admin only)
+- Pages: `/artists/<slug>`, `/songs/<id>`, `/search`

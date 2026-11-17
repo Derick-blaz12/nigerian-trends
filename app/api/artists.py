@@ -2,7 +2,7 @@ from flask import jsonify, request
 
 from app.api import bp
 from app.api.serializers import serialize_artist_detail, serialize_artist_summary
-from app.services import artist_service
+from app.services import artist_service, link_service
 from app.utils.pagination import get_pagination
 
 
@@ -20,4 +20,6 @@ def list_artists():
 
 @bp.get("/artists/<slug>")
 def get_artist(slug):
-    return jsonify(data=serialize_artist_detail(artist_service.get_artist_by_slug(slug)))
+    artist = artist_service.get_artist_by_slug(slug)
+    links = link_service.list_links("artist", artist.id)
+    return jsonify(data=serialize_artist_detail(artist, links=links))

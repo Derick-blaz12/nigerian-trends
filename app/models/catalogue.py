@@ -56,8 +56,14 @@ class Album(TimestampMixin, db.Model):
     release_date: Mapped[date | None] = mapped_column(sa.Date)
     cover_url: Mapped[str | None] = mapped_column(sa.String(500))
 
+    archived_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+
     artist: Mapped["Artist"] = relationship(back_populates="albums")
     songs: Mapped[list["Song"]] = relationship(back_populates="album")
+
+    @property
+    def is_public(self):
+        return self.archived_at is None and self.artist.archived_at is None
 
     __table_args__ = (
         sa.UniqueConstraint("artist_id", "title", name="uq_albums_artist_title"),
@@ -80,11 +86,20 @@ class Song(TimestampMixin, db.Model):
     duration_seconds: Mapped[int | None]
     isrc: Mapped[str | None] = mapped_column(sa.String(12), unique=True)
 
+    archived_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+
     album: Mapped["Album | None"] = relationship(back_populates="songs")
     credits: Mapped[list["SongArtist"]] = relationship(
         back_populates="song", cascade="all, delete-orphan", order_by="SongArtist.position"
     )
     genres: Mapped[list["Genre"]] = relationship(secondary=song_genres)
+
+    @property
+    def is_public(self):
+        """Visible to the public: not archived, and a non-archived primary artist."""
+        return self.archived_at is None and any(
+            c.role == "primary" and c.artist.archived_at is None for c in self.credits
+        )
 
 
 class SongArtist(db.Model):

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nigerian Trends{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+</head>
+<body data-page="{% block page %}{% endblock %}">
+  <header class="site-header">
+    <span class="brand">Nigerian Trends</span>
+    <form class="search" action="/search" method="get" role="search">
+      <input type="search" name="q" placeholder="Search artists, songs, albums"
+             minlength="2" maxlength="100" aria-label="Search">
+      <button type="submit">Search</button>
+    </form>
+  </header>
+  <main id="content" aria-live="polite"><p class="message">Loading...</p></main>
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+</body>
+</html>

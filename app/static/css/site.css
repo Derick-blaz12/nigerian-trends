@@ -1,0 +1,31 @@
+:root {
+  --bg: #ffffff; --fg: #161616; --muted: #666666;
+  --accent: #0a7d3b; --line: #e3e3e3; --chip: #eef6f0;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #121212; --fg: #f1f1f1; --muted: #a0a0a0; --accent: #4cc27d; --line: #2c2c2c; --chip: #1d2a22; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.5; }
+a { color: var(--accent); }
+.site-header { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; padding: .75rem 1rem; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; }
+.search { display: flex; gap: .5rem; flex: 1 1 16rem; max-width: 32rem; }
+.search input { flex: 1; min-width: 0; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--bg); color: var(--fg); font-size: 1rem; }
+.search button { padding: .6rem 1rem; border: 0; border-radius: .5rem; background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer; }
+main { max-width: 48rem; margin: 0 auto; padding: 1rem; }
+h1 { margin: .25rem 0; font-size: 1.75rem; }
+h2 { margin: 1.5rem 0 .5rem; font-size: 1.15rem; }
+.muted { color: var(--muted); margin: .25rem 0; }
+.message { padding: 2rem 0; text-align: center; color: var(--muted); }
+.profile { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.portrait { width: 9rem; height: 9rem; object-fit: cover; border-radius: 50%; }
+.chips, .links, .items { list-style: none; margin: .5rem 0; padding: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chips li { background: var(--chip); border-radius: 999px; padding: .15rem .7rem; font-size: .9rem; }
+.links { display: flex; flex-wrap: wrap; gap: .5rem; }
+.links a { display: inline-block; padding: .5rem .9rem; border: 1px solid var(--accent); border-radius: .5rem; text-decoration: none; }
+.items li { padding: .6rem 0; border-bottom: 1px solid var(--line); }
+.bio { white-space: pre-line; }
+.credits { margin: .15rem 0; }
+.badge { margin-left: .4rem; font-size: .8rem; color: var(--muted); }

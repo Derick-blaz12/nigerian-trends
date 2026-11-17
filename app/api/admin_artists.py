@@ -5,7 +5,7 @@ from app.api import bp
 from app.api.serializers import serialize_artist_detail, serialize_artist_summary
 from app.errors import ValidationError
 from app.security import admin_required
-from app.services import artist_service
+from app.services import artist_service, link_service
 from app.utils.pagination import get_pagination
 from app.utils.validation import require_fields
 
@@ -17,8 +17,8 @@ def _log(action, artist):
 
 
 def _detail(artist):
-    return jsonify(data=serialize_artist_detail(artist, admin=True))
-
+    links = link_service.list_links("artist", artist.id)
+    return jsonify(data=serialize_artist_detail(artist, admin=True, links=links))
 
 @bp.get("/admin/artists")
 @admin_required
