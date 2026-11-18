@@ -96,3 +96,22 @@ def validate_link(platform, url):
             "url is invalid.", details={"url": f"A {platform} link must be on {' or '.join(domains)}."}
         )
     return platform, url
+
+def validate_https_url(url, field="url"):
+    """Return a cleaned https URL, or raise ValidationError."""
+    if not isinstance(url, str):
+        raise ValidationError(f"{field} is invalid.", details={field: "Must be text."})
+    url = url.strip()
+    if not url or len(url) > 500 or any(ch.isspace() for ch in url):
+        raise ValidationError(
+            f"{field} is invalid.",
+            details={field: "Enter a link of up to 500 characters, with no spaces."},
+        )
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+    except ValueError:
+        parsed, host = None, ""
+    if parsed is None or parsed.scheme != "https" or not host or parsed.username or parsed.password:
+        raise ValidationError(f"{field} is invalid.", details={field: "Use a full https:// link."})
+    return url

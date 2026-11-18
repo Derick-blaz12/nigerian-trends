@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.extensions import db
 from app.models.mixins import TimestampMixin
@@ -20,12 +20,18 @@ class ArtistUpdate(TimestampMixin, db.Model):
     song_id: Mapped[int | None] = mapped_column(sa.ForeignKey("songs.id", ondelete="SET NULL"))
     album_id: Mapped[int | None] = mapped_column(sa.ForeignKey("albums.id", ondelete="SET NULL"))
     title: Mapped[str] = mapped_column(sa.String(200))
+    summary: Mapped[str | None] = mapped_column(sa.String(300))
     body: Mapped[str] = mapped_column(sa.Text)
     category: Mapped[str] = mapped_column(sa.String(30), default="news", server_default="news")
     source_name: Mapped[str | None] = mapped_column(sa.String(150))
     source_url: Mapped[str | None] = mapped_column(sa.String(500))
     status: Mapped[str] = mapped_column(sa.String(20), default="draft", server_default="draft")
     published_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True), index=True)
+
+    artist: Mapped["Artist"] = relationship()
+    author: Mapped["User | None"] = relationship()
+    song: Mapped["Song | None"] = relationship()
+    album: Mapped["Album | None"] = relationship()
 
     __table_args__ = (
         sa.CheckConstraint(
@@ -39,4 +45,10 @@ class ArtistUpdate(TimestampMixin, db.Model):
             "status <> 'published' OR published_at IS NOT NULL",
             name="ck_artist_updates_published_has_date",
         ),
+        sa.Index("ix_artist_updates_status_published", "status", "published_at"),
     )
+
+    @property
+    def is_public(self):
+        """Visible to the public: published, and the artist isn't archived."""
+        return self.status == "published" and self.artist.archived_at is None

@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from flask import current_app, jsonify, render_template, send_from_directory
+from flask import current_app, jsonify, make_response, render_template, send_from_directory
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.errors import AppError
@@ -65,3 +65,21 @@ def song_page(song_id):
 @bp.get("/search")
 def search_page():
     return render_template("search.html")
+
+
+@bp.get("/news")
+def news_page():
+    return render_template("news.html")
+
+
+@bp.get("/news/<int:update_id>")
+def news_item_page(update_id):
+    return render_template("news_item.html")
+
+
+@bp.get("/admin/editorial")
+def editorial_dashboard():
+    """The page itself holds no data. Everything it shows comes from admin-only API calls."""
+    response = make_response(render_template("admin_editorial.html"))
+    response.headers["Cache-Control"] = "no-store"
+    return response

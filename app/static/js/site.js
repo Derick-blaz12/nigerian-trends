@@ -9,6 +9,7 @@
     audiomack: "Audiomack", boomplay: "Boomplay", deezer: "Deezer",
     soundcloud: "SoundCloud", tidal: "Tidal", website: "Website",
   };
+  var CATEGORY_LABELS = { news: "News", release: "Release", interview: "Interview", event: "Event" };
 
   // Only same-site paths and https links are ever put into href/src.
   function safeUrl(url) {
@@ -19,7 +20,7 @@
   }
 
   // Everything from the API is untrusted text: we only ever set textContent,
-  // never innerHTML, so a hostile song title cannot inject markup or scripts.
+  // never innerHTML, so a hostile title cannot inject markup or scripts.
   function el(tag, props, children) {
     var node = document.createElement(tag);
     props = props || {};
@@ -77,6 +78,10 @@
     });
   }
 
+  function formatPublished(iso) {
+    return iso ? formatDate(iso.slice(0, 10)) : "";
+  }
+
   function section(title, node) {
     return el("section", {}, [el("h2", { text: title }), node]);
   }
@@ -109,7 +114,91 @@
     return artists.map(function (a) { return a.name; }).join(", ");
   }
 
-  // ---------- pages ----------
+  // ---------- news ----------
+
+  function updateList(items) {
+    return el("ul", { className: "items" }, items.map(function (u) {
+      var meta = [u.artist.name, CATEGORY_LABELS[u.category] || u.category, formatPublished(u.published_at)]
+        .filter(Boolean).join(" | ");
+      return el("li", {}, [
+        el("a", { href: "/news/" + u.id, text: u.title }),
+        el("p", { className: "muted", text: meta }),
+        u.summary ? el("p", { text: u.summary }) : null,
+      ]);
+    }));
+  }
+
+  // Adds a news section under the page content. Failures are silent: the page works without it.
+  function appendUpdates(url, title) {
+    getJSON(url).then(function (body) {
+      if (body.data.length) content.appendChild(section(title, updateList(body.data)));
+    }).catch(function (error) {
+      console.error(error);
+    });
+  }
+
+  function renderNewsItem(u) {
+    document.title = u.title + " | Nigerian Trends";
+    var meta = [CATEGORY_LABELS[u.category] || u.category, formatPublished(u.published_at)]
+      .filter(Boolean).join(" | ");
+    var about = [
+      document.createTextNode("About "),
+      el("a", { href: "/artists/" + encodeURIComponent(u.artist.slug), text: u.artist.name }),
+    ];
+    if (u.song) {
+      about.push(document.createTextNode(" | "));
+      about.push(el("a", { href: "/songs/" + u.song.id, text: u.song.title }));
+    }
+    if (u.album) about.push(document.createTextNode(" | Album: " + u.album.title));
+
+    var source = null;
+    if (u.source) {
+      source = el("p", { className: "muted" }, [
+        document.createTextNode("Source: "),
+        u.source.url ? el("a", { href: u.source.url, text: u.source.name }) : document.createTextNode(u.source.name),
+      ]);
+    }
+    show([
+      el("h1", { text: u.title }),
+      el("p", { className: "muted", text: meta }),
+      el("p", { className: "muted" }, about),
+      u.summary ? el("p", { text: u.summary }) : null,
+      el("div", { className: "bio", text: u.body }),
+      source,
+    ]);
+  }
+
+  function initNews() {
+    var params = new URLSearchParams(window.location.search);
+    var category = params.get("category") || "";
+    var pageNumber = parseInt(params.get("page"), 10);
+    if (!(pageNumber >= 1)) pageNumber = 1;
+    var perPage = 10;
+    var url = "/api/v1/updates?per_page=" + perPage + "&page=" + pageNumber +
+      (category ? "&category=" + encodeURIComponent(category) : "");
+
+    getJSON(url).then(function (body) {
+      var filters = [el("li", {}, [el("a", { href: "/news", text: "All" })])];
+      Object.keys(CATEGORY_LABELS).forEach(function (key) {
+        filters.push(el("li", {}, [el("a", { href: "/news?category=" + key, text: CATEGORY_LABELS[key] })]));
+      });
+      var nodes = [el("h1", { text: "News" }), el("ul", { className: "chips" }, filters)];
+      if (!body.data.length) nodes.push(el("p", { className: "message", text: "No news yet." }));
+      else nodes.push(updateList(body.data));
+
+      var base = "/news?" + (category ? "category=" + encodeURIComponent(category) + "&" : "");
+      var pager = [];
+      if (pageNumber > 1) pager.push(el("a", { href: base + "page=" + (pageNumber - 1), text: "Newer" }));
+      if (body.meta.total > pageNumber * perPage) pager.push(el("a", { href: base + "page=" + (pageNumber + 1), text: "Older" }));
+      if (pager.length) nodes.push(el("p", { className: "pager" }, pager));
+      show(nodes);
+    }).catch(function (error) {
+      console.error(error);
+      showMessage(error.status === 422 ? "Nothing found." : "Could not load the news. Please try again.");
+    });
+  }
+
+  // ---------- catalogue pages ----------
 
   function renderArtist(a) {
     document.title = a.name + " | Nigerian Trends";
@@ -141,6 +230,7 @@
       }))));
     }
     show(nodes);
+    appendUpdates("/api/v1/updates?per_page=5&artist=" + encodeURIComponent(a.slug), "Latest news");
   }
 
   function renderSong(s) {
@@ -158,6 +248,7 @@
     ];
     if (s.links.length) nodes.push(section("Listen", linkList(s.links)));
     show(nodes);
+    appendUpdates("/api/v1/updates?per_page=5&song=" + s.id, "Related news");
   }
 
   function resultList(items, build) {
@@ -223,4 +314,6 @@
   if (page === "artist") load("/api/v1/artists/" + (parts[1] || ""), renderArtist, "Artist not found.");
   else if (page === "song") load("/api/v1/songs/" + (parts[1] || ""), renderSong, "Song not found.");
   else if (page === "search") initSearch();
+  else if (page === "news") initNews();
+  else if (page === "news-item") load("/api/v1/updates/" + (parts[1] || ""), renderNewsItem, "This story was not found.");
 })();

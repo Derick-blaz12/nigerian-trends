@@ -47,3 +47,6 @@ Phase 1 complete: project foundation.
 - `GET /api/v1/search?q=`: grouped search across artists, songs and albums
 - `/api/v1/admin/songs|albums|links`: catalogue management (admin only)
 - Pages: `/artists/<slug>`, `/songs/<id>`, `/search`
+- `GET /api/v1/updates?artist=&category=&song=&album=`, `GET /api/v1/updates/<id>`: published news
+- `/api/v1/admin/updates/...`: create, edit, publish, unpublish, archive, restore (admin only)
+- Pages: `/news`, `/news/<id>`, `/admin/editorial` (dashboard)

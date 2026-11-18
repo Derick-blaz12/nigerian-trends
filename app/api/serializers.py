@@ -159,3 +159,39 @@ def serialize_album_detail(album, admin=False, links=None):
         data["created_at"] = _iso(album.created_at)
         data["updated_at"] = _iso(album.updated_at)
     return data
+
+# ---------- updates ----------
+
+def serialize_update_summary(update, admin=False):
+    song = update.song if update.song is not None and (admin or update.song.is_public) else None
+    album = update.album if update.album is not None and (admin or update.album.is_public) else None
+    data = {
+        "id": update.id,
+        "title": update.title,
+        "summary": update.summary,
+        "category": update.category,
+        "published_at": _iso(update.published_at),
+        "artist": {
+            "id": update.artist.id,
+            "name": update.artist.name,
+            "slug": update.artist.slug,
+        },
+        "song": {"id": song.id, "title": song.title} if song is not None else None,
+        "album": {"id": album.id, "title": album.title} if album is not None else None,
+        "source": (
+            {"name": update.source_name, "url": update.source_url} if update.source_name else None
+        ),
+    }
+    if admin:
+        data["status"] = update.status
+        data["author"] = update.author.username if update.author is not None else None
+        data["updated_at"] = _iso(update.updated_at)
+    return data
+
+
+def serialize_update_detail(update, admin=False):
+    data = serialize_update_summary(update, admin)
+    data["body"] = update.body
+    if admin:
+        data["created_at"] = _iso(update.created_at)
+    return data
