@@ -25,6 +25,7 @@ class ArtistExternalId(db.Model):
     artist_id: Mapped[int] = mapped_column(sa.ForeignKey("artists.id", ondelete="CASCADE"))
     data_source_id: Mapped[int] = mapped_column(sa.ForeignKey("data_sources.id"))
     external_id: Mapped[str] = mapped_column(sa.String(200))
+    last_synced_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
     __table_args__ = (
         sa.UniqueConstraint("data_source_id", "external_id", name="uq_artist_ext_source_extid"),

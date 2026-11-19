@@ -5,3 +5,4 @@ from app.models.community import ArtistFollow, Comment, CommentReport, Reaction 
 from app.models.content import ArtistUpdate  # noqa: F401
 from app.models.data import ArtistExternalId, DataSource, MetricSnapshot  # noqa: F401
 from app.models.user import User  # noqa: F401
+from app.models.collection import CollectionRun, MatchCandidate  # noqa: F401

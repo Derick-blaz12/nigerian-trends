@@ -2,6 +2,7 @@ import logging
 import os
 import time
 import uuid
+from flask.logging import default_handler
 from logging.handlers import RotatingFileHandler
 
 from flask import g, request
@@ -18,6 +19,7 @@ def configure_logging(app):
     if any(getattr(h, "_trends_handler", False) for h in app.logger.handlers):
         return
 
+    app.logger.removeHandler(default_handler)
     formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
 
     console = logging.StreamHandler()

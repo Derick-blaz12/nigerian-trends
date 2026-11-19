@@ -41,6 +41,14 @@ class Config:
     RATELIMIT_ENABLED = True
     RATELIMIT_STORAGE_URI = "memory://"
 
+    # Data collection (Phase 8)
+    COLLECTOR_CONTACT = os.environ.get("COLLECTOR_CONTACT", "")
+    MUSICBRAINZ_BASE_URL = "https://musicbrainz.org/ws/2"
+    COLLECTOR_MIN_INTERVAL = 1.1   # seconds between requests (the source allows 1 per second)
+    COLLECTOR_TIMEOUT = 20
+    COLLECTOR_MAX_ATTEMPTS = 4
+    COLLECTOR_STALE_DAYS = 30      # re-enrich an artist after this many days
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
