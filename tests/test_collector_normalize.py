@@ -51,18 +51,21 @@ def raw_group(**overrides):
     return data
 
 
-@pytest.mark.parametrize(
-    "primary, expected", [("Album", "album"), ("EP", "ep"), ("Single", "single")]
-)
+@pytest.mark.parametrize("primary, expected", [("Album", "album"), ("EP", "ep")])
 def test_release_groups_are_normalized(primary, expected):
     result = normalize_release_group(raw_group(**{"primary-type": primary}))
     assert result == {
-        [
-        ("Album", "album"), 
-        ("EP", "ep")
-        ]
+        "mbid": MBID_B,
+        "title": "Born in the Wild",
+        "album_type": expected,
+        "year": 2024,
+        "release_date": date(2024, 6, 7),
     }
 
+
+def test_singles_are_not_imported():
+    assert normalize_release_group(raw_group(**{"primary-type": "Single"})) is None
+    
 def test_singles_are_not_imported():
     assert normalize_release_group(raw_group(**{"primary-type": "Single"})) is None
 
