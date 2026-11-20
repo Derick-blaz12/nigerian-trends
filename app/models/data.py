@@ -15,6 +15,7 @@ class DataSource(TimestampMixin, db.Model):
     base_url: Mapped[str | None] = mapped_column(sa.String(300))
     terms_url: Mapped[str | None] = mapped_column(sa.String(300))
     is_active: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
+    allows_commercial_use: Mapped[bool] = mapped_column(default=False, server_default=sa.false())
     notes: Mapped[str | None] = mapped_column(sa.Text)
 
 

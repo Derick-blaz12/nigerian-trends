@@ -77,6 +77,11 @@ def news_item_page(update_id):
     return render_template("news_item.html")
 
 
+@bp.get("/radar")
+def radar_page():
+    return render_template("radar.html")
+
+
 @bp.get("/admin/editorial")
 def editorial_dashboard():
     """The page itself holds no data. Everything it shows comes from admin-only API calls."""

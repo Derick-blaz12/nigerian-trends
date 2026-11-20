@@ -50,3 +50,10 @@ Phase 1 complete: project foundation.
 - `GET /api/v1/updates?artist=&category=&song=&album=`, `GET /api/v1/updates/<id>`: published news
 - `/api/v1/admin/updates/...`: create, edit, publish, unpublish, archive, restore (admin only)
 - Pages: `/news`, `/news/<id>`, `/admin/editorial` (dashboard)
+
+## Next Up Radar
+    flask --app wsgi collect-lastfm
+    flask --app wsgi radar-show
+    flask --app wsgi radar-explain --slug some-artist
+    flask --app wsgi radar-set --slug some-artist --status pick --note "..." --days 30
+Rules: `docs/RADAR.md`. Page: `/radar`. API: `/api/v1/radar`, `/api/v1/radar/rules`.

@@ -82,3 +82,19 @@ def test_request_budget_is_enforced_even_across_retries():
     with pytest.raises(BudgetExceeded):
         http.get_json(URL)
     assert len(session.calls) == 2
+
+
+def test_error_bodies_are_returned_when_requested():
+    http, _, _ = make_http(FakeResponse(400, {"error": 6}))
+    assert http.get_json(URL, accept_client_errors=True) == {"error": 6}
+
+
+def test_a_404_body_is_returned_when_requested():
+    http, _, _ = make_http(FakeResponse(404, {"error": 6}))
+    assert http.get_json(URL, accept_client_errors=True) == {"error": 6}
+
+
+def test_a_client_error_without_json_still_raises_when_requested():
+    http, _, _ = make_http(FakeResponse(403, None))
+    with pytest.raises(CollectorError):
+        http.get_json(URL, accept_client_errors=True)

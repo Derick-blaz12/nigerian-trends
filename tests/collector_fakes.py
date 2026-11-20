@@ -2,6 +2,8 @@ from app.collectors.http import PoliteClient
 
 MBID_A = "11111111-1111-4111-8111-111111111111"
 MBID_B = "22222222-2222-4222-8222-222222222222"
+MBID_C = "33333333-3333-4333-8333-333333333333"
+MBID_D = "44444444-4444-4444-8444-444444444444"
 
 
 class FakeResponse:
@@ -105,3 +107,20 @@ class FakeMusicBrainz:
     def browse_release_groups(self, mbid):
         self.requests_made += 1
         return self.groups.get(mbid, [])
+
+
+class FakeLastFm:
+    """Stands in for LastFmClient so the sync logic is tested without any network."""
+
+    def __init__(self, stats=None, errors=None):
+        self.stats = stats or {}
+        self.errors = errors or {}
+        self.requests_made = 0
+        self.requested = []
+
+    def get_artist_stats(self, mbid):
+        self.requests_made += 1
+        self.requested.append(mbid)
+        if mbid in self.errors:
+            raise self.errors[mbid]
+        return self.stats.get(mbid)

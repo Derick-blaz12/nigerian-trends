@@ -16,3 +16,15 @@ Last verified: 2026-11-18. Re-check terms before launch and before any monetizat
 
 ## Not used
 - Spotify: terms not verified yet. We do not scrape X, TikTok or Spotify.
+
+## Decision log
+- 2026-11-19: Platform is non-commercial for now, with monetization planned later. Non-commercial sources (MusicBrainz web service, Last.fm) are allowed during development. Before any monetization: get a MetaBrainz commercial plan (or replace the source) and a Last.fm commercial agreement (or drop it), then set `allows_commercial_use` accordingly.
+
+## Last.fm (in use for audience numbers, non-commercial)
+- Access: free API key, `artist.getInfo` by MusicBrainz id. We stay far below the roughly 5 requests per second guidance (1 per second).
+- Terms: non-commercial use only unless a commercial agreement is made. Storage and attribution terms NOT yet verified (the terms page could not be read on 2026-11-19). Read https://www.last.fm/api/tos before launch.
+- We store listener and play counts, once per artist per day, and credit Last.fm on the Radar.
+- Flag: `data_sources.allows_commercial_use` is false. Do not flip it without a signed agreement.
+
+## Decision log
+- 2026-11-19: Platform is non-commercial for now, with monetization planned later. Before any monetization: get a MetaBrainz commercial plan (or replace the source) and a Last.fm commercial agreement (or drop it), then set `allows_commercial_use` accordingly.

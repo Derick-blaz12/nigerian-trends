@@ -49,6 +49,14 @@ class Config:
     COLLECTOR_MAX_ATTEMPTS = 4
     COLLECTOR_STALE_DAYS = 30      # re-enrich an artist after this many days
 
+    # When True, only data from sources cleared for commercial use feeds the Radar.
+    PLATFORM_COMMERCIAL = os.environ.get("PLATFORM_COMMERCIAL", "false").strip().lower() == "true"
+
+    # Last.fm (Phase 9)
+    LASTFM_API_KEY = os.environ.get("LASTFM_API_KEY", "")
+    LASTFM_BASE_URL = "https://ws.audioscrobbler.com/2.0/"
+    LASTFM_MIN_INTERVAL = 1.0  # seconds between requests (Last.fm allows far more)
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

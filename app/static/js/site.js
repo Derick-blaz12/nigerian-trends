@@ -310,10 +310,49 @@
     });
   }
 
+    // ---------- Next Up Radar ----------
+
+  function renderRadar(items, meta) {
+    var nodes = [
+      el("h1", { text: "Next Up Radar" }),
+      el("p", { className: "muted", text: "Emerging Nigerian artists, picked by open rules. Every card shows why." }),
+    ];
+    if (!items.length) {
+      nodes.push(el("p", { className: "message", text: "The Radar is warming up. Check back soon." }));
+    } else {
+      nodes.push(el("ul", { className: "items" }, items.map(function (item) {
+        var a = item.artist;
+        var head = [el("a", { href: "/artists/" + encodeURIComponent(a.slug), text: "#" + item.rank + " " + a.name })];
+        if (item.editors_pick) head.push(el("span", { className: "badge", text: "Editor's pick" }));
+        var facts = [a.origin_city, a.genres.map(function (g) { return g.name; }).join(", ")]
+          .filter(Boolean).join(" | ");
+        return el("li", {}, [
+          el("strong", {}, head),
+          facts ? el("p", { className: "muted", text: facts }) : null,
+          el("ul", { className: "reasons" }, item.reasons.map(function (r) {
+            return el("li", { text: r.label + " (+" + r.points + ")" });
+          })),
+        ]);
+      })));
+    }
+    if (meta.attribution) nodes.push(el("p", { className: "muted", text: meta.attribution }));
+    show(nodes);
+  }
+
+  function initRadar() {
+    getJSON("/api/v1/radar?limit=24").then(function (body) {
+      renderRadar(body.data, body.meta);
+    }).catch(function (error) {
+      console.error(error);
+      showMessage("Could not load the Radar. Please try again.");
+    });
+  }
+
   var parts = window.location.pathname.split("/").filter(Boolean);
   if (page === "artist") load("/api/v1/artists/" + (parts[1] || ""), renderArtist, "Artist not found.");
   else if (page === "song") load("/api/v1/songs/" + (parts[1] || ""), renderSong, "Song not found.");
   else if (page === "search") initSearch();
   else if (page === "news") initNews();
   else if (page === "news-item") load("/api/v1/updates/" + (parts[1] || ""), renderNewsItem, "This story was not found.");
+  else if (page === "radar") initRadar();
 })();
