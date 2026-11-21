@@ -119,3 +119,16 @@ def normalize_artist_detail(raw):
         if link and link not in links:
             links.append(link)
     return {"links": links}
+
+def normalize_single(raw):
+    """A plain single (no remix, live or other secondary type) becomes a song to import."""
+    if not isinstance(raw, dict) or not is_mbid(raw.get("id")):
+        return None
+    if raw.get("primary-type") != "Single" or raw.get("secondary-types"):
+        return None
+    try:
+        title = clean_string(raw.get("title"), "title", min_len=1, max_len=200)
+    except ValidationError:
+        return None
+    year, full_date = parse_mb_date(raw.get("first-release-date"))
+    return {"mbid": raw["id"], "title": title, "year": year, "release_date": full_date}

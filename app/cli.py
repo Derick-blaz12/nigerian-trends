@@ -15,7 +15,7 @@ from app.extensions import db
 from app.models import ArtistExternalId, CollectionRun
 from app.models.mixins import utcnow
 from app.radar.rules import DEFAULT_RULES
-from app.services import artist_service, auth_service, genre_service, radar_service
+from app.services import artist_service, auth_service, collection_service, genre_service, radar_service
 
 STARTER_GENRES = [
     "Afrobeats", "Afropop", "Afro-fusion", "Amapiano", "Alté", "Highlife",
@@ -83,8 +83,10 @@ def register_cli(app):
     @click.option("--max-requests", default=150, show_default=True, help="Request budget.")
     @click.option("--link/--no-link", default=True, help="Match artists to MusicBrainz.")
     @click.option("--enrich/--no-enrich", default=True, help="Import links and releases.")
+    @click.option("--stale-days", type=int, default=None,
+                  help="Re-sync artists last synced more than this many days ago (0 = all).")
     @click.option("--scheduled", is_flag=True, help="Mark the run as started by a scheduler.")
-    def collect_musicbrainz(limit, max_requests, link, enrich, scheduled):
+    def collect_musicbrainz(limit, max_requests, link, enrich, stale_days, scheduled):
         """Run the MusicBrainz collection job."""
         contact = (app.config.get("COLLECTOR_CONTACT") or "").strip()
         if not contact:
@@ -105,7 +107,7 @@ def register_cli(app):
                 link=link,
                 enrich=enrich,
                 limit=limit,
-                stale_days=app.config["COLLECTOR_STALE_DAYS"],
+                stale_days=app.config["COLLECTOR_STALE_DAYS"] if stale_days is None else stale_days,
                 triggered_by="schedule" if scheduled else "cli",
             )
         except RunAlreadyActive as err:
@@ -244,3 +246,38 @@ def register_cli(app):
             click.echo(f"  [{'ok' if check.passed else 'FAIL'}] {check.name}: {check.detail}")
         for component in evaluation.components:
             click.echo(f"  +{component.points} {component.name}: {component.detail}")
+
+    @app.cli.command("review-matches")
+    def review_matches():
+        """Walk through pending MusicBrainz matches and confirm or reject each one."""
+        rows, total = collection_service.list_candidates("pending", 1, 50)
+        if not rows:
+            click.echo("Nothing to review.")
+            return
+        click.echo(f"{total} candidate(s) waiting. Open each link and check it is the same artist.")
+        linked = set()
+        for candidate, artist in rows:
+            if artist.id in linked:
+                continue
+            click.echo("")
+            click.echo(f"Our artist:  {artist.name}")
+            click.echo(
+                f"MusicBrainz:  {candidate.external_name} | country {candidate.country or '?'} | "
+                f"started {candidate.begin_year or '?'} | {candidate.disambiguation or 'no note'}"
+            )
+            click.echo(f"Check it:    https://musicbrainz.org/artist/{candidate.external_id}")
+            choice = click.prompt(
+                "Same artist? (y = link, n = reject, skip = decide later)",
+                type=click.Choice(["y", "n", "skip"]),
+                default="skip",
+            )
+            try:
+                if choice == "y":
+                    collection_service.confirm_candidate(candidate.id)
+                    linked.add(artist.id)
+                    click.echo("Linked.")
+                elif choice == "n":
+                    collection_service.reject_candidate(candidate.id)
+                    click.echo("Rejected.")
+            except AppError as err:
+                click.echo(f"Could not save: {err.message}")

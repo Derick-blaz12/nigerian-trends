@@ -7,11 +7,10 @@ from app.collectors import sync
 from app.collectors.http import BudgetExceeded, CollectorError
 from app.collectors.runs import RunAlreadyActive
 from app.extensions import db
-from app.models import Album, ArtistExternalId, CollectionRun, MatchCandidate
+from app.models import Album, ArtistExternalId, CollectionRun, MatchCandidate, Song
 from app.models.mixins import utcnow
-from app.services import artist_service, collection_service, link_service
-from tests.collector_fakes import MBID_A, MBID_B, FakeMusicBrainz, group, hit
-
+from app.services import artist_service, collection_service, link_service, song_service
+from tests.collector_fakes import MBID_A, MBID_B, FakeMusicBrainz, group, hit, single
 
 def make_artist(name, **extra):
     return artist_service.create_artist({"name": name, **extra})
@@ -326,3 +325,39 @@ def test_year_only_release_still_gives_a_debut_year(app):
     album = db.session.scalar(sa.select(Album))
     assert album.release_date is None
     assert artist.debut_year == 2021
+
+def test_singles_become_songs_not_albums(app):
+    artist = make_artist("Tems")
+    link_artist(artist)
+    mb = FakeMusicBrainz(
+        details={MBID_A: {"links": []}},
+        singles={MBID_A: [single("Higher", 2019, date(2019, 8, 1)), single("Old Tape", 2021)]},
+    )
+
+    run = sync.run_musicbrainz(mb, link=False)
+
+    songs = db.session.scalars(sa.select(Song).order_by(Song.title)).all()
+    assert [(s.title, s.release_date) for s in songs] == [
+        ("Higher", date(2019, 8, 1)),
+        ("Old Tape", None),
+    ]
+    assert db.session.scalar(sa.select(sa.func.count()).select_from(Album)) == 0
+    assert artist.debut_year == 2019
+    assert (run.items_created, run.items_updated) == (2, 1)
+
+
+def test_songs_that_already_exist_are_not_duplicated(app):
+    artist = make_artist("Tems")
+    link_artist(artist)
+    song_service.create_song(
+        {"title": "higher!", "artists": [{"artist_id": artist.id, "role": "primary"}]}
+    )
+    mb = FakeMusicBrainz(
+        details={MBID_A: {"links": []}},
+        singles={MBID_A: [single("Higher", 2019, date(2019, 8, 1))]},
+    )
+
+    run = sync.run_musicbrainz(mb, link=False)
+
+    assert db.session.scalar(sa.select(sa.func.count()).select_from(Song)) == 1
+    assert run.items_created == 0

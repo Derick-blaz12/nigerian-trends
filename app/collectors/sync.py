@@ -10,7 +10,7 @@ from app.errors import AppError
 from app.extensions import db
 from app.models import Album, Artist, ArtistExternalId, DataSource, MatchCandidate
 from app.models.mixins import utcnow
-from app.services import link_service
+from app.services import link_service, song_service
 from app.utils.catalogue import title_key
 
 logger = logging.getLogger(__name__)
@@ -191,6 +191,7 @@ def _enrich_one(client, link_id, artist_id, mbid, counters, session):
             counters.skipped += 1
 
     groups = client.browse_release_groups(mbid)
+    singles = client.browse_singles(mbid)
     existing = {
         title_key(album.title): album
         for album in session.scalars(sa.select(Album).where(Album.artist_id == artist.id))
@@ -213,8 +214,22 @@ def _enrich_one(client, link_id, artist_id, mbid, counters, session):
             counters.updated += 1
         else:
             counters.skipped += 1
+    session.commit()  # albums are saved before the songs, which are committed one by one
 
-    years = [g["year"] for g in groups if g["year"]]
+    for single in singles:
+        data = {
+            "title": single["title"],
+            "artists": [{"artist_id": artist_id, "role": "primary"}],
+        }
+        if single["release_date"] is not None:
+            data["release_date"] = single["release_date"].isoformat()
+        try:
+            song_service.create_song(data, session=session)
+            counters.created += 1
+        except AppError:  # a song like this already exists, or the title is unusable
+            counters.skipped += 1
+
+    years = [item["year"] for item in groups + singles if item["year"]]
     if artist.debut_year is None and years:
         artist.debut_year = min(years)  # inferred from the earliest release, never overwritten
         counters.updated += 1

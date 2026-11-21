@@ -72,6 +72,8 @@ def hit(name, country="NG", mbid=MBID_A, score=100, **extra):
     data.update(extra)
     return data
 
+def single(title, year=None, release_date=None, mbid=MBID_B):
+    return {"mbid": mbid, "title": title, "year": year, "release_date": release_date}
 
 def group(title, album_type="album", year=None, release_date=None, mbid=MBID_B):
     return {
@@ -83,10 +85,11 @@ def group(title, album_type="album", year=None, release_date=None, mbid=MBID_B):
 class FakeMusicBrainz:
     """Stands in for MusicBrainzClient so sync logic is tested without any network."""
 
-    def __init__(self, hits=None, details=None, groups=None, errors=None):
+    def __init__(self, hits=None, details=None, groups=None, singles=None, errors=None):
         self.hits = hits or {}
         self.details = details or {}
         self.groups = groups or {}
+        self.singles = singles or {}
         self.errors = errors or {}
         self.requests_made = 0
         self.searched = []
@@ -108,6 +111,9 @@ class FakeMusicBrainz:
         self.requests_made += 1
         return self.groups.get(mbid, [])
 
+    def browse_singles(self, mbid):
+        self.requests_made += 1
+        return self.singles.get(mbid, [])
 
 class FakeLastFm:
     """Stands in for LastFmClient so the sync logic is tested without any network."""

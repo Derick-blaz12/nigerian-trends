@@ -8,6 +8,7 @@ from app.collectors.normalize import (
     normalize_artist_detail,
     normalize_artist_hit,
     normalize_release_group,
+    normalize_single,
     parse_mb_date,
 )
 from tests.collector_fakes import MBID_A, MBID_B
@@ -159,3 +160,19 @@ def test_artist_detail_keeps_only_valid_unique_links():
             ("website", "https://tems.example/"),
         ]
     }
+
+def test_plain_singles_are_normalized():
+    result = normalize_single(raw_group(**{"primary-type": "Single", "title": "Higher"}))
+    assert result == {
+        "mbid": MBID_B, "title": "Higher", "year": 2024, "release_date": date(2024, 6, 7),
+    }
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"primary-type": "Album"}, {"secondary-types": ["Remix"]}, {"title": "  "}, {"id": "nope"}],
+)
+def test_only_plain_singles_are_accepted(overrides):
+    data = {"primary-type": "Single"}
+    data.update(overrides)
+    assert normalize_single(raw_group(**data)) is None

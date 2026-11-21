@@ -4,6 +4,7 @@ from app.collectors.normalize import (
     normalize_artist_detail,
     normalize_artist_hit,
     normalize_release_group,
+    normalize_single,
 )
 
 
@@ -36,21 +37,28 @@ class MusicBrainzClient:
         )
         return None if data is None else normalize_artist_detail(data)
 
-    def browse_release_groups(self, mbid, max_pages=5):
+    def _browse(self, mbid, kinds, normalize, max_pages):
         if not is_mbid(mbid):
             raise CollectorError("Invalid MusicBrainz id.")
-        groups, offset = [], 0
+        found, offset = [], 0
         for _ in range(max_pages):
             data = self.http.get_json(
                 f"{self.base_url}/release-group",
-                {"artist": mbid, "type": "album|ep", "limit": 100,
-                 "offset": offset, "fmt": "json"},
+                {"artist": mbid, "type": kinds, "limit": 100, "offset": offset, "fmt": "json"},
             )
             if data is None:
                 break
             raw = data.get("release-groups") or []
-            groups.extend(g for g in (normalize_release_group(item) for item in raw) if g)
+            found.extend(item for item in (normalize(r) for r in raw) if item)
             offset += len(raw)
             if not raw or offset >= (data.get("release-group-count") or 0):
                 break
-        return groups
+        return found
+
+    def browse_release_groups(self, mbid, max_pages=5):
+        """Albums and EPs."""
+        return self._browse(mbid, "album|ep", normalize_release_group, max_pages)
+
+    def browse_singles(self, mbid, max_pages=5):
+        """Plain singles, which we import as songs."""
+        return self._browse(mbid, "single", normalize_single, max_pages)
