@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
-from app.models.mixins import TimestampMixin
+from app.models.mixins import TimestampMixin, utcnow
 
 
 class User(UserMixin, TimestampMixin, db.Model):
@@ -19,6 +19,7 @@ class User(UserMixin, TimestampMixin, db.Model):
     role: Mapped[str] = mapped_column(sa.String(20), default="user", server_default="user")
     is_active: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
     last_login_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    muted_until: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
     __table_args__ = (
         sa.CheckConstraint("role IN ('user', 'admin')", name="ck_users_role"),
@@ -33,3 +34,7 @@ class User(UserMixin, TimestampMixin, db.Model):
     @property
     def is_admin(self):
         return self.role == "admin"
+
+    @property
+    def is_muted(self):
+        return self.muted_until is not None and self.muted_until > utcnow()

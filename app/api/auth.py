@@ -57,3 +57,11 @@ def logout():
 @login_required
 def me():
     return jsonify(data=serialize_user(current_user))
+
+
+@bp.get("/auth/session")
+def session_info():
+    """Who is signed in? Anonymous visitors get a 200 with null instead of a 401."""
+    if current_user.is_authenticated:
+        return jsonify(data=serialize_user(current_user))
+    return jsonify(data=None)

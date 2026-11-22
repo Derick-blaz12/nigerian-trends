@@ -1,6 +1,7 @@
 from functools import wraps
 
 from flask import request
+from flask_limiter.util import get_remote_address
 from flask_login import current_user
 
 from app.errors import AppError, AuthenticationError, ForbiddenError
@@ -44,3 +45,14 @@ def admin_required(view):
         return view(*args, **kwargs)
 
     return wrapper
+
+
+def user_or_ip_key():
+    """Rate-limit signed-in people by account and everyone else by IP address.
+
+    Many mobile users share one carrier IP, so limiting signed-in people by IP
+    would punish innocent neighbours.
+    """
+    if current_user.is_authenticated:
+        return f"user:{current_user.id}"
+    return get_remote_address()

@@ -343,3 +343,19 @@ def restore_song(song, session=None):
         song.archived_at = None
         session.commit()
     return get_song(song.id, include_hidden=True, session=session)
+
+def public_clause():
+    """SQL condition for songs the public can see."""
+    return _public_clause()
+
+
+def load_public_songs(song_ids, session=None):
+    """Public songs by id (credits, genres and album loaded), as {id: song}."""
+    session = session or db.session
+    song_ids = list(song_ids)
+    if not song_ids:
+        return {}
+    songs = session.scalars(
+        sa.select(Song).where(Song.id.in_(song_ids), _public_clause()).options(*_load_options())
+    ).all()
+    return {song.id: song for song in songs}

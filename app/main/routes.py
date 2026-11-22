@@ -88,3 +88,22 @@ def editorial_dashboard():
     response = make_response(render_template("admin_editorial.html"))
     response.headers["Cache-Control"] = "no-store"
     return response
+
+@bp.get("/login")
+def login_page():
+    return render_template("login.html")
+
+
+@bp.get("/register")
+def register_page():
+    return render_template("register.html")
+
+
+@bp.get("/charts")
+def charts_page():
+    return render_template("charts.html")
+
+
+@bp.get("/discussions")
+def discussions_page():
+    return render_template("discussions.html")

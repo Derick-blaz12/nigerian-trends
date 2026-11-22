@@ -16,12 +16,17 @@ class Comment(TimestampMixin, db.Model):
         sa.ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     parent_id: Mapped[int | None] = mapped_column(
-        sa.ForeignKey("comments.id", ondelete="CASCADE")
+        sa.ForeignKey("comments.id", ondelete="CASCADE"), index=True
     )
     body: Mapped[str] = mapped_column(sa.Text)
     status: Mapped[str] = mapped_column(sa.String(20), default="visible", server_default="visible")
     edited_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     deleted_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    moderated_by: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    moderated_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    moderation_note: Mapped[str | None] = mapped_column(sa.String(300))
 
     __table_args__ = (
         sa.Index("ix_comments_song_created", "song_id", "created_at"),
@@ -63,6 +68,10 @@ class CommentReport(db.Model):
     created_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True), default=utcnow, server_default=sa.func.now()
     )
+    resolved_by: Mapped[int | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
     __table_args__ = (
         sa.UniqueConstraint("comment_id", "reporter_id", name="uq_comment_reports_comment_reporter"),
