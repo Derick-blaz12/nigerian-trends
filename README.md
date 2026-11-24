@@ -57,3 +57,9 @@ Phase 1 complete: project foundation.
     flask --app wsgi radar-explain --slug some-artist
     flask --app wsgi radar-set --slug some-artist --status pick --note "..." --days 30
 Rules: `docs/RADAR.md`. Page: `/radar`. API: `/api/v1/radar`, `/api/v1/radar/rules`.
+## Community
+- `GET /api/v1/songs/<id>/community`, `PUT|DELETE /api/v1/songs/<id>/reactions/<like|recommend>`
+- `GET|POST /api/v1/songs/<id>/comments`, `PATCH|DELETE /api/v1/comments/<id>`, `POST /api/v1/comments/<id>/report`
+- `GET /api/v1/rankings/songs?period=trending|all_time`, `GET /api/v1/discussions/recent`
+- Admin: `/api/v1/admin/moderation/...` (queue, remove, restore, dismiss, mute, unmute)
+Rules: `docs/COMMUNITY.md`.

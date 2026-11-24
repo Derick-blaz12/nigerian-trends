@@ -12,6 +12,6 @@ def no_store_for_private_routes(response):
 
 
 from app.api import (  # noqa: E402,F401
-    admin, admin_artists, admin_catalogue, admin_collection, admin_radar, admin_updates,
-    albums, artists, auth, genres, radar, search, songs, updates,
+    admin, admin_artists, admin_catalogue, admin_collection, admin_moderation, admin_radar,
+    admin_updates, albums, artists, auth, community, genres, radar, search, songs, updates,
 )
