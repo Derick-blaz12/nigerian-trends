@@ -63,3 +63,6 @@ Rules: `docs/RADAR.md`. Page: `/radar`. API: `/api/v1/radar`, `/api/v1/radar/rul
 - `GET /api/v1/rankings/songs?period=trending|all_time`, `GET /api/v1/discussions/recent`
 - Admin: `/api/v1/admin/moderation/...` (queue, remove, restore, dismiss, mute, unmute)
 Rules: `docs/COMMUNITY.md`.
+
+- Pages: `/login`, `/register`, `/charts`, `/discussions`, plus a community panel on `/songs/<id>`
+- `GET /api/v1/auth/session` tells pages who is signed in (200 with null for anonymous visitors)

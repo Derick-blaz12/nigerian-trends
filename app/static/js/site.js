@@ -249,6 +249,7 @@
     if (s.links.length) nodes.push(section("Listen", linkList(s.links)));
     show(nodes);
     appendUpdates("/api/v1/updates?per_page=5&song=" + s.id, "Related news");
+    if (window.TrendsCommunity) window.TrendsCommunity.mountSongPanel(s.id, content);
   }
 
   function resultList(items, build) {

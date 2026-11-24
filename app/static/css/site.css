@@ -42,3 +42,11 @@ button.btn.primary { background: var(--accent); color: #fff; }
 .flash { min-height: 1.5rem; margin: .5rem 0; }
 .error { color: #c0392b; }
 .reasons { margin: .25rem 0 0; padding-left: 1.1rem; }
+.account { display: flex; gap: .75rem; align-items: center; }
+.account a { text-decoration: none; }
+a.btn { display: inline-block; padding: .45rem .9rem; border: 1px solid var(--accent); border-radius: .5rem; text-decoration: none; }
+a.btn.primary { background: var(--accent); color: #fff; }
+.community { margin-top: 1.5rem; }
+.comment { padding: .6rem 0; border-bottom: 1px solid var(--line); }
+.comment .replies { margin: .5rem 0 0 1rem; padding-left: .75rem; border-left: 2px solid var(--line); }
+.comment-body { white-space: pre-wrap; overflow-wrap: anywhere; }
