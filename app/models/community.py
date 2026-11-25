@@ -90,6 +90,7 @@ class ArtistFollow(db.Model):
     artist_id: Mapped[int] = mapped_column(
         sa.ForeignKey("artists.id", ondelete="CASCADE"), primary_key=True, index=True
     )
+    notify: Mapped[bool] = mapped_column(default=True, server_default=sa.true())
     created_at: Mapped[datetime] = mapped_column(
         sa.DateTime(timezone=True), default=utcnow, server_default=sa.func.now()
     )
